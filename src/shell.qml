@@ -1,19 +1,37 @@
-import Quickshell // for PanelWindow
-import QtQuick // for Text
+import Quickshell
+import Quickshell.Io
+import QtQuick
 
-PanelWindow {
-  anchors {
-    top: true
-    left: true
-    right: true
-  }
+import "lib"
 
-  implicitHeight: 30
+Scope {
+	Variants {
+		model: Quickshell.screens;
 
-  Text {
-    // center the bar in its parent component (the window)
-    anchors.centerIn: parent
+		PanelWindow {
+			anchors {
+				top: true
+				left: true
+				right: true
+			}
 
-    text: "hello world"
-  }
+			required property var modelData
+
+			screen: modelData
+
+			implicitHeight: 30
+
+			Text {
+				// center the bar in its parent component (the window)
+				anchors.centerIn: parent
+				text: date.output
+			}
+		}
+	}
+
+	PollCmd {
+		id: date
+		command: ["date", "+%s"]
+		frequency: 1000
+	}
 }
