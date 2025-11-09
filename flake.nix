@@ -16,7 +16,66 @@
 			inputs.devshell.flakeModule
 		];
 		systems = import inputs.systems;
-		perSystem = { pkgs, lib, ... }: {
+		perSystem = { pkgs, lib, ... }: rec {
+
+			packages = let
+				inherit (pkgs) callPackage;
+				callDefaultPackage = lib.flip callPackage <| {};
+			in rec {
+				mabar = callDefaultPackage (
+					{
+						bash,
+						quickshell,
+						stdenv,
+						wmDumper ? sampleWmDumper,
+					}: stdenv.mkDerivation rec {
+						pname = "mabar";
+						version = "0.1";
+						src = ./src;
+						phases = [ "installPhase" ];
+						installPhase = let
+							internalBins = {
+								inherit wmDumper;
+							};
+							linkInternalBins = internalBins
+								|> lib.mapAttrs (name: pack: /* bash */ "ln -s ${lib.getExe pack} $out/internalBins/${name}")
+								|> lib.attrValues
+								|> lib.concatLines
+							;
+						in  /* bash */ ''
+							mkdir -p $out
+							cp -r ${src} $out/quickshell
+
+							mkdir -p $out/internalBins
+							${linkInternalBins}
+
+							mkdir -p $out/bin
+							cat <<- EOF > $out/bin/mabar
+							#!${lib.getExe bash}
+							export PATH="$out/internalBins:$PATH"
+							exec ${lib.getExe quickshell} -p $out/quickshell "\$@"
+							EOF
+							chmod +x $out/bin/mabar
+						'';
+					}
+				);
+
+				sampleWmDumper = callDefaultPackage ({
+						writeShellApplication,
+						jq,
+						coreutils,
+					}: writeShellApplication {
+						name = "sampleWmDumper";
+						text = builtins.readFile ./scripts/wmDumpers/sample.bash;
+						inheritPath = false;
+						runtimeInputs = [
+							jq
+							coreutils
+						];
+					}
+				);
+			};
+
 			devshells.default = let
 				intoFmt = x:
 					x
@@ -25,6 +84,7 @@
 				;
 			in {
 				env = intoFmt {
+					PATH.prefix = "${packages.mabar}/internalBins";
 				};
 				commands = intoFmt {
 					live = {
