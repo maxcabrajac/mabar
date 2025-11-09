@@ -94,6 +94,7 @@
 				};
 				packages = with pkgs; [
 					quickshell
+					jq
 				];
 			};
 		};

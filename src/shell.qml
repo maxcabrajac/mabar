@@ -24,7 +24,9 @@ Scope {
 			implicitHeight: 30
 
 			left: [
-
+				WindowManager {
+					screen: modelData
+				}
 			]
 
 			center: [
