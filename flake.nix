@@ -27,7 +27,7 @@
 						bash,
 						quickshell,
 						stdenv,
-						wmDumper ? sampleWmDumper,
+						wmInterface ? sampleWmInteraface,
 					}: stdenv.mkDerivation rec {
 						pname = "mabar";
 						version = "0.1";
@@ -35,7 +35,7 @@
 						phases = [ "installPhase" ];
 						installPhase = let
 							internalBins = {
-								inherit wmDumper;
+								inherit wmInterface;
 							};
 							linkInternalBins = internalBins
 								|> lib.mapAttrs (name: pack: /* bash */ "ln -s ${lib.getExe pack} $out/internalBins/${name}")
@@ -60,13 +60,13 @@
 					}
 				);
 
-				sampleWmDumper = callDefaultPackage ({
+				sampleWmInteraface = callDefaultPackage ({
 						writeShellApplication,
 						jq,
 						coreutils,
 					}: writeShellApplication {
 						name = "sampleWmDumper";
-						text = builtins.readFile ./scripts/wmDumpers/sample.bash;
+						text = builtins.readFile ./scripts/wmInterface/sample.bash;
 						inheritPath = false;
 						runtimeInputs = [
 							jq

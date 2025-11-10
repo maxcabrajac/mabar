@@ -45,7 +45,7 @@ Column {
 		id: workspaces
 		ListenCmd {
 			output: "[]"
-			command: [ "wmDumper", "workspaces", `${root.screen.name}` ]
+			command: [ "wmInterface", "workspaces", `${root.screen.name}` ]
 		}
 	}
 }
