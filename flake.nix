@@ -33,6 +33,7 @@
 						version = "0.1";
 						src = ./src;
 						phases = [ "installPhase" ];
+						meta.mainProgram = "mabar";
 						installPhase = let
 							internalBins = {
 								inherit wmInterface;
