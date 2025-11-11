@@ -9,7 +9,10 @@
 			inputs.nixpkgs-lib.follows = "nixpkgs";
 		};
 
-		devshell.url = "github:numtide/devshell";
+		devshell = {
+			url = "github:numtide/devshell";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
 	};
 	outputs = { flake-parts, self, ... } @ inputs: flake-parts.lib.mkFlake { inherit inputs; } {
 		imports = [
