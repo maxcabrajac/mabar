@@ -27,41 +27,19 @@
 			in rec {
 				mabar = callDefaultPackage (
 					{
-						bash,
 						quickshell,
-						stdenv,
+						linkFarm,
+						writeShellScriptBin,
 						wmInterface ? sampleWmInteraface,
-					}: stdenv.mkDerivation rec {
-						pname = "mabar";
-						version = "0.1";
-						src = ./src;
-						phases = [ "installPhase" ];
-						meta.mainProgram = "mabar";
-						installPhase = let
-							internalBins = {
-								inherit wmInterface;
-							};
-							linkInternalBins = internalBins
-								|> lib.mapAttrs (name: pack: /* bash */ "ln -s ${lib.getExe pack} $out/internalBins/${name}")
-								|> lib.attrValues
-								|> lib.concatLines
-							;
-						in  /* bash */ ''
-							mkdir -p $out
-							cp -r ${src} $out/quickshell
-
-							mkdir -p $out/internalBins
-							${linkInternalBins}
-
-							mkdir -p $out/bin
-							cat <<- EOF > $out/bin/mabar
-							#!${lib.getExe bash}
-							export PATH="$out/internalBins:$PATH"
-							exec ${lib.getExe quickshell} -p $out/quickshell "\$@"
-							EOF
-							chmod +x $out/bin/mabar
-						'';
-					}
+					}: let
+						internalBins = {
+							inherit wmInterface;
+						} |> lib.mapAttrs (_: p: lib.getExe p) |> linkFarm "mabar-internal-bins";
+					in
+						writeShellScriptBin "mabar" ''
+							export PATH=${internalBins}:$PATH
+							exec ${lib.getExe quickshell} -p ${./src} "$@"
+						''
 				);
 
 				sampleWmInteraface = callDefaultPackage ({
