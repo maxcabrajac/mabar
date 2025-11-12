@@ -19,8 +19,13 @@
 			inputs.devshell.flakeModule
 		];
 		systems = import inputs.systems;
-		perSystem = { pkgs, lib, ... }: rec {
-
+		perSystem = { pkgs, lib, ... }: let
+			buildInternalBins = attrs:
+				attrs
+				|> lib.mapAttrs' (name: p: { name = "bin/${name}"; value = lib.getExe p; })
+				|> pkgs.linkFarm "mabar-internal-bins"
+			;
+		in rec {
 			packages = let
 				inherit (pkgs) callPackage;
 				callDefaultPackage = lib.flip callPackage <| {};
@@ -28,30 +33,29 @@
 				mabar = callDefaultPackage (
 					{
 						quickshell,
-						linkFarm,
 						writeShellScriptBin,
-						wmInterface ? sampleWmInteraface,
+						wmInterface ? sampleWmInterface,
 					}: let
-						internalBins = {
+						internalBins = buildInternalBins {
 							inherit wmInterface;
-						} |> lib.mapAttrs (_: p: lib.getExe p) |> linkFarm "mabar-internal-bins";
+						};
 						src = builtins.path {
 							path = ./src;
 							name = "mabar-quickshell-src";
 						};
 					in
 						writeShellScriptBin "mabar" ''
-							export PATH=${internalBins}:$PATH
+							export PATH=${internalBins}/bin:$PATH
 							exec ${lib.getExe quickshell} -p ${src} "$@"
 						''
 				);
 
-				sampleWmInteraface = callDefaultPackage ({
+				sampleWmInterface = callDefaultPackage ({
 						writeShellApplication,
 						jq,
 						coreutils,
 					}: writeShellApplication {
-						name = "sampleWmDumper";
+						name = "sampleWmInterface";
 						text = builtins.readFile ./scripts/wmInterface/sample.bash;
 						inheritPath = false;
 						runtimeInputs = [
@@ -69,16 +73,16 @@
 					|> lib.attrValues
 				;
 			in {
-				env = intoFmt {
-					PATH.prefix = "${packages.mabar}/internalBins";
-				};
 				commands = intoFmt {
 					live = {
 						help = "Start live reloading";
 						command = "qs -p $PRJ_ROOT/src";
 					};
 				};
-				packages = with pkgs; [
+				packages = with pkgs; with packages; [
+					(buildInternalBins {
+						wmInterface = sampleWmInterface;
+					})
 					quickshell
 					jq
 				];
