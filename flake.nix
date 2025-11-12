@@ -35,10 +35,14 @@
 						internalBins = {
 							inherit wmInterface;
 						} |> lib.mapAttrs (_: p: lib.getExe p) |> linkFarm "mabar-internal-bins";
+						src = builtins.path {
+							path = ./src;
+							name = "mabar-quickshell-src";
+						};
 					in
 						writeShellScriptBin "mabar" ''
 							export PATH=${internalBins}:$PATH
-							exec ${lib.getExe quickshell} -p ${./src} "$@"
+							exec ${lib.getExe quickshell} -p ${src} "$@"
 						''
 				);
 
