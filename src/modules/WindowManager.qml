@@ -5,47 +5,96 @@ import QtQuick.Controls
 
 import qs.lib
 
-Column {
+Row {
 	id: root
-
 	required property var screen
 
-	property int numRows: workspaces.output.length
+	spacing: 50
 
-	property int totalSize: parent.height
-	property int cellSize: (totalSize - (numRows + 1) * spacing) / numRows
+	Column {
+		id: workspaces
 
-	spacing: 2
+		property int numRows: workspacesCmd.output.length
 
-	Repeater {
-		model: workspaces.output
-		Row {
-			spacing: root.spacing
-			Repeater {
-				model: modelData
-				Rectangle {
-					property var w: modelData
-					width: root.cellSize * (1920 / 1080)
-					height: root.cellSize
-					radius: 2
+		property int totalSize: root.parent.height
+		property int cellSize: (totalSize - (numRows + 1) * spacing) / numRows
+		property real cellRatio: 1920.0 / 1080.0
 
-					function attr(focused, occupied, empty) {
-						if (w.focused) return focused
-						if (w.empty) return empty
-						return occupied
+		spacing: 2
+
+		Repeater {
+			model: workspacesCmd.output
+			Row {
+				spacing: workspaces.spacing
+				Repeater {
+					model: modelData
+					Rectangle {
+						property var w: modelData
+						width: workspaces.cellSize * workspaces.cellRatio
+						height: workspaces.cellSize
+						radius: 2
+
+						function attr(focused, occupied, empty) {
+							if (w.focused) return focused
+							if (w.empty) return empty
+							return occupied
+						}
+
+						color: attr("red", "blue", "dark gray")
 					}
-
-					color: attr("red", "blue", "dark gray")
 				}
+			}
+		}
+
+		JsonParser {
+			id: workspacesCmd
+			ListenCmd {
+				output: "[]"
+				command: [ "wmInterface", "workspaces", `${root.screen.name}` ]
 			}
 		}
 	}
 
-	JsonParser {
-		id: workspaces
-		ListenCmd {
-			output: "[]"
-			command: [ "wmInterface", "workspaces", `${root.screen.name}` ]
+	Row {
+		id: windows
+
+		spacing: 1
+
+		property int iconSize: root.parent.height - 2 * spacing
+		property int iconPadding: 8
+
+		Repeater {
+			model: windowsCmd.output
+			Row {
+				Repeater {
+					model: modelData
+
+					Item {
+						width: windows.iconSize
+						height: windows.iconSize
+						Rectangle {
+							anchors.fill: parent
+							color: modelData.focused ? "dark gray" : "gray"
+							radius: 4
+						}
+
+						Image {
+							anchors.centerIn: parent
+							source: Quickshell.iconPath(DesktopEntries.heuristicLookup(modelData.class).icon)
+							height: windows.iconSize - windows.iconPadding
+							width: windows.iconSize - windows.iconPadding
+						}
+					}
+				}
+			}
+		}
+
+		JsonParser {
+			id: windowsCmd
+			ListenCmd {
+				output: "[]"
+				command: ["wmInterface", "windows", `${root.screen.name}` ]
+			}
 		}
 	}
 }

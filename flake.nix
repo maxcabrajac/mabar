@@ -83,6 +83,7 @@
 					(buildInternalBins {
 						wmInterface = sampleWmInterface;
 					})
+					sampleWmInterface
 					quickshell
 					jq
 				];
