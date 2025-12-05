@@ -69,6 +69,7 @@ Row {
 				return Math.max(...windowsCmd.output.map(w => w.x)) + 1
 			}
 			Row {
+				spacing: windows.spacing
 				Repeater {
 					model: ScriptModel {
 						values: windowsCmd.output
