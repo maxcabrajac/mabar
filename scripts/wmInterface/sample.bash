@@ -20,22 +20,23 @@ workspaces() {
 
 window() {
 	cat<<-EOF
-	{"focused": ${1}, "class": "${2}"}
+	{"focused": ${1}, "class": "${2}", "id": ${3}, "x": ${4}, "y": ${5}}
 	EOF
 }
 
 random_window_permutation() {
 	(
-		window true "discord"
-		window false "kitty"
-		window false "kitty"
-		window false "org.telegram.desktop"
-		window false "steam"
+		window true "discord" 7 0 0
+		window false "kitty" 10 0 1
+		window false "kitty" 11 1 0
+		window false "org.telegram.desktop" 14 2 0
+		window false "steam" 123 3 0
+		window false "steam" 4654 3 1
 	) | shuf
 }
 
 windows() {
-	random_window_permutation | jq --slurp --compact-output 'map([.])'
+	random_window_permutation | jq --slurp --compact-output 'map(.)'
 }
 
 while true; do

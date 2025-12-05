@@ -64,10 +64,17 @@ Row {
 		property int iconPadding: 8
 
 		Repeater {
-			model: windowsCmd.output
+			model: {
+				if (windowsCmd.output.length == 0) return 0
+				return Math.max(...windowsCmd.output.map(w => w.x)) + 1
+			}
 			Row {
 				Repeater {
-					model: modelData
+					model: ScriptModel {
+						values: windowsCmd.output
+							.filter(w => w.x == modelData)
+							.sort((a, b) => (a.y - b.y))
+					}
 
 					Item {
 						width: windows.iconSize
