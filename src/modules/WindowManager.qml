@@ -14,6 +14,8 @@ Row {
 	Column {
 		id: workspaces
 
+		anchors.verticalCenter: parent.verticalCenter
+
 		property int numRows: workspacesCmd.output.length
 
 		property int totalSize: root.parent.height
